@@ -159,14 +159,29 @@ android:background="?android:attr/colorBackground"
         />
 </androidx.constraintlayout.widget.ConstraintLayout>
 
-<com.google.android.material.floatingactionbutton.FloatingActionButton
-android:id="@+id/fabUpload"
-android:layout_width="wrap_content"
-android:layout_height="wrap_content"
-android:layout_gravity="bottom|end"
-android:layout_margin="16dp"
-android:src="@drawable/ic_upload_device"
-android:contentDescription="@string/upload_file"
-app:tint="@color/white"/>
+<LinearLayout
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="bottom|end"
+    android:orientation="vertical"
+    android:layout_margin="16dp">
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabChat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:src="@drawable/ic_chat"
+        android:contentDescription="@string/chat_title"
+        app:tint="@color/white"/>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabUpload"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_upload_device"
+        android:contentDescription="@string/upload_file"
+        app:tint="@color/white"/>
+</LinearLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

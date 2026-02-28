@@ -65,6 +65,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var rvFiles: RecyclerView
     private lateinit var fileAdapter: FileAdapter
     private lateinit var fabUpload: FloatingActionButton
+    private lateinit var fabChat: FloatingActionButton
     private lateinit var viewStatusIndicator: View
     private lateinit var tvNoFilesMessage: TextView
     private lateinit var btnStartServer: Button
@@ -185,6 +186,7 @@ class MainActivity : AppCompatActivity() {
         btnStopServer = findViewById(R.id.btnStopServer)
         rvFiles = findViewById(R.id.rvFiles)
         fabUpload = findViewById(R.id.fabUpload)
+        fabChat = findViewById(R.id.fabChat)
         viewStatusIndicator = findViewById(R.id.viewStatusIndicator)
         tvNoFilesMessage = findViewById(R.id.tvNoFilesMessage)
         btnStartServer = findViewById(R.id.btnStartServer)
@@ -233,6 +235,10 @@ class MainActivity : AppCompatActivity() {
                 intent.action = Constants.ACTION_STOP_SERVICE
                 startService(intent)
             }
+        }
+        
+        fabChat.setOnClickListener {
+            com.matanh.transfer.ui.ChatBottomSheetDialogFragment().show(supportFragmentManager, "ChatBottomSheet")
         }
     }
 
@@ -624,11 +630,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            R.id.action_paste -> {
-                viewModel.pasteFromClipboard()
-                true
-            }
-
             R.id.action_qr -> {
                 val url = getIpURL() ?: return true;
                 showQRCodeDialog(url)

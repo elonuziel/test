@@ -6,7 +6,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const noFilesMessage = document.getElementById('no-files-message');
     const themeToggleButton = document.getElementById('theme-toggle');
     const themeIcon = document.getElementById('theme-icon');
-    const pasteButton = document.getElementById('paste-button');
     const downloadAllZipButton = document.getElementById('download-all-zip-button');
 
     const selectAllCheckbox = document.getElementById('select-all-checkbox');
@@ -398,32 +397,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
     }
 
-    pasteButton.addEventListener('click', async () => {
-        try {
-            const text = await navigator.clipboard.readText();
-            if (text.length > 0) {
-                // Determine the next available filename
-                let pasteIndex = 1;
-                let fileName = `paste_${pasteIndex}.txt`;
-                const existingFiles = Array.from(filesTableBody.querySelectorAll('[data-file-name]'))
-                    .map(row => row.dataset.fileName);
-
-                while (existingFiles.includes(fileName)) {
-                    pasteIndex++;
-                    fileName = `paste_${pasteIndex}.txt`;
-                }
-
-                const blob = new Blob([text], { type: 'text/plain' });
-                const file = new File([blob], fileName, { type: 'text/plain', lastModified: new Date().getTime() });
-                uploadFile(file, fileName); // Use the uploadFile function
-            } else {
-                showError('Clipboard is empty or contains no text.', 'info');
-            }
-        } catch (err) {
-            console.error('Failed to read clipboard contents: ', err);
-            showError('Failed to read clipboard. Please grant clipboard permissions.', 'error');
-        }
-    });
     function updateDownloadButtonLabel() {
         const all = filesTableBody.querySelectorAll('.file-select');
         const checkedCount = filesTableBody.querySelectorAll('.file-select:checked').length;
@@ -486,7 +459,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatPanel = document.getElementById('chat-panel');
     const chatCloseButton = document.getElementById('chat-close-button');
     const chatMessagesContainer = document.getElementById('chat-messages');
-    const chatSenderInput = document.getElementById('chat-sender-input');
     const chatMessageInput = document.getElementById('chat-message-input');
     const chatSendButton = document.getElementById('chat-send-button');
     const chatUnreadBadge = document.getElementById('chat-unread-badge');
@@ -494,16 +466,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastMessageTimestamp = 0;
     let isChatOpen = false;
     let unreadCount = 0;
-
-    // Load saved sender name
-    const savedSender = localStorage.getItem('chatSenderName');
-    if (savedSender) {
-        chatSenderInput.value = savedSender;
-    }
-
-    chatSenderInput.addEventListener('change', () => {
-        localStorage.setItem('chatSenderName', chatSenderInput.value.trim());
-    });
 
     // Toggle Chat Panel
     chatFab.addEventListener('click', () => {
@@ -541,12 +503,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function appendMessage(msg) {
-        const isMe = msg.sender === chatSenderInput.value.trim();
         const bubble = document.createElement('div');
-        bubble.className = `chat-bubble ${isMe ? 'me' : 'other'}`;
+        // If there are multiple clients, differentiating 'me' vs 'other' dynamically is hard without a sender ID.
+        // For now, styling them as generic bubbles.
+        bubble.className = `chat-bubble message`;
 
         bubble.innerHTML = `
-            <div class="chat-bubble-sender">${msg.sender}</div>
             <div class="chat-bubble-text">${msg.text}</div>
             <div class="chat-bubble-time">${formatTime(msg.timestamp)}</div>
         `;
@@ -569,8 +531,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
                 if (data.messages && data.messages.length > 0) {
                     data.messages.forEach(msg => {
-                        appendMessage(msg);
-                        lastMessageTimestamp = Math.max(lastMessageTimestamp, msg.timestamp);
+                        // Avoid duplicates if multiple long-polls resolve at once
+                        if (msg.timestamp > lastMessageTimestamp) {
+                            appendMessage(msg);
+                            lastMessageTimestamp = msg.timestamp;
+                        }
                     });
                 }
             }
@@ -579,7 +544,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Wait a bit before retrying on error to avoid hammering the server
             await new Promise(resolve => setTimeout(resolve, 5000));
         } finally {
-            // Immediately start next poll
+            // Immediately start next poll IF not fetching again concurrently
             pollMessages();
         }
     }
@@ -587,7 +552,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Send Message
     async function sendMessage() {
         const text = chatMessageInput.value.trim();
-        const sender = chatSenderInput.value.trim() || 'Anonymous';
 
         if (!text) return;
 
@@ -597,7 +561,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text, sender })
+                body: JSON.stringify({ text })
             });
             if (!response.ok) {
                 console.error('Failed to send message');

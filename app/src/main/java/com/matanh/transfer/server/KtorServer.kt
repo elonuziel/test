@@ -74,15 +74,8 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
-import java.util.zip.ZipEntry
-import java.util.zip.ZipOutputStream
-
 const val TAG_KTOR_MODULE = "TransferKtorModule"
 private val logger = Timber.tag(TAG_KTOR_MODULE)
-
-// --- Chat State ---
-private val chatMessages = mutableListOf<ChatMessage>()
-private val chatUpdateFlow = MutableSharedFlow<Unit>(replay = 1)
 
 // --- Auto-Close State ---
 private val lastActivityTime = AtomicLong(System.currentTimeMillis())
@@ -593,14 +586,14 @@ fun Application.ktorServer(
                 // Chat Endpoints
                 get("/chat") {
                     val since = call.request.queryParameters["since"]?.toLongOrNull() ?: 0L
-                    var newMessages = chatMessages.filter { it.timestamp > since }
+                    var newMessages = ChatRepository.messages.filter { it.timestamp > since }
                     
                     if (newMessages.isEmpty()) {
-                        // Long polling: wait up to 30s for a new message
+                        // Long polling: wait up to 30s for the state to reflect a newer timestamp
                         withTimeoutOrNull(30_000) {
-                            chatUpdateFlow.first()
+                            ChatRepository.lastUpdateFlow.first { it > since }
                         }
-                        newMessages = chatMessages.filter { it.timestamp > since }
+                        newMessages = ChatRepository.messages.filter { it.timestamp > since }
                     }
                     
                     call.respond(ChatMessagesResponse(newMessages))
@@ -611,21 +604,10 @@ fun Application.ktorServer(
                         val requestBody = call.receiveText()
                         val jsonObject = JSONObject(requestBody)
                         val text = jsonObject.optString("text", "").trim()
-                        val sender = jsonObject.optString("sender", "Anonymous").trim()
                         
                         if (text.isNotEmpty()) {
-                            val msg = ChatMessage(
-                                sender = sender.ifEmpty { "Anonymous" },
-                                text = text,
-                                timestamp = System.currentTimeMillis()
-                            )
-                            chatMessages.add(msg)
-                            // Keep maximum 100 messages in memory
-                            if (chatMessages.size > 100) {
-                                chatMessages.removeAt(0)
-                            }
-                            chatUpdateFlow.tryEmit(Unit)
-                            call.respond(HttpStatusCode.Created, msg)
+                            ChatRepository.addMessage(text)
+                            call.respond(HttpStatusCode.Created, SuccessResponse("Message Sent"))
                         } else {
                             call.respond(HttpStatusCode.BadRequest, ErrorResponse("Message text is empty"))
                         }
@@ -720,7 +702,7 @@ data class ErrorResponse(val error: String)
 data class SuccessResponse(val message: String)
 
 @Serializable
-data class ChatMessage(val sender: String, val text: String, val timestamp: Long)
+data class ChatMessage(val text: String, val timestamp: Long)
 
 @Serializable
 data class ChatMessagesResponse(val messages: List<ChatMessage>)

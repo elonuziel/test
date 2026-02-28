@@ -79,36 +79,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * Handles the "paste" action from the menu.
-     */
-    fun pasteFromClipboard() {
-        val folderUri = _selectedFolderUri.value
-        if (folderUri == null) {
-            Toast.makeText(getApplication(), R.string.shared_folder_not_selected, Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val clipboard = getApplication<Application>().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        if (clipboard.hasPrimaryClip() && clipboard.primaryClipDescription?.hasMimeType("text/plain") == true) {
-            val textToPaste = clipboard.primaryClip?.getItemAt(0)?.text?.toString()
-            if (!textToPaste.isNullOrEmpty()) {
-                viewModelScope.launch {
-                val file = FileUtils.createTextFileInDir(getApplication(), folderUri, "paste", "txt", textToPaste)
-                if (file != null && file.exists()) {
-                    Toast.makeText(getApplication(), getApplication<Application>().getString(R.string.text_pasted_to_file, file.name), Toast.LENGTH_SHORT).show()
-                    loadFiles(folderUri) // Refresh file list
-                } else {
-                    Toast.makeText(getApplication(), R.string.failed_to_paste_text, Toast.LENGTH_SHORT).show()
-                }}
-            } else {
-                Toast.makeText(getApplication(), R.string.clipboard_empty, Toast.LENGTH_SHORT).show()
-            }
-        } else {
-            Toast.makeText(getApplication(), R.string.no_text_in_clipboard, Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    /**
      * Handles deleting a list of selected files.
      */
     fun deleteFiles(filesToDelete: List<FileItem>) {
