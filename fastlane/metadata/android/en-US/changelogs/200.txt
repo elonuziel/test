@@ -1,1 +1,0 @@
-New feature: Share files and text to the app, Fix: Refresh file list on upload/delete

@@ -1,1 +1,0 @@
-new feature: About screen. fix: #2 (app crash)

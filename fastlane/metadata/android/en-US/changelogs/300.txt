@@ -1,1 +1,0 @@
-UI redesign in both app and web, settings now auto-apply, faster download speed
