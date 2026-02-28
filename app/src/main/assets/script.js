@@ -520,7 +520,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const copyBtn = bubble.querySelector('.chat-copy-btn');
         copyBtn.addEventListener('click', () => {
-            navigator.clipboard.writeText(msg.text).then(() => {
+            const handleSuccess = () => {
                 const originalSvg = copyBtn.innerHTML;
                 copyBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>`;
                 copyBtn.style.color = '#4CAF50';
@@ -528,7 +528,38 @@ document.addEventListener('DOMContentLoaded', () => {
                     copyBtn.innerHTML = originalSvg;
                     copyBtn.style.color = '';
                 }, 1500);
-            }).catch(err => console.error('Failed to copy text: ', err));
+            };
+
+            const handleError = (err) => {
+                console.error('Failed to copy text: ', err);
+            };
+
+            // Modern Clipboard API approach (requires HTTPS or localhost usually)
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(msg.text).then(handleSuccess).catch(handleError);
+            } else {
+                // Fallback approach for HTTP environments using execCommand
+                try {
+                    const textArea = document.createElement("textarea");
+                    textArea.value = msg.text;
+                    // Move textarea out of viewport so it's not visible
+                    textArea.style.position = "absolute";
+                    textArea.style.left = "-999999px";
+                    document.body.prepend(textArea);
+                    textArea.select();
+
+                    const successful = document.execCommand('copy');
+                    textArea.remove();
+
+                    if (successful) {
+                        handleSuccess();
+                    } else {
+                        handleError(new Error("execCommand('copy') failed"));
+                    }
+                } catch (err) {
+                    handleError(err);
+                }
+            }
         });
 
         chatMessagesContainer.appendChild(bubble);
