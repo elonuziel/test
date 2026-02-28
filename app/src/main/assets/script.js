@@ -481,6 +481,145 @@ document.addEventListener('DOMContentLoaded', () => {
 
     });
 
+    // --- Chat Feature ---
+    const chatFab = document.getElementById('chat-fab');
+    const chatPanel = document.getElementById('chat-panel');
+    const chatCloseButton = document.getElementById('chat-close-button');
+    const chatMessagesContainer = document.getElementById('chat-messages');
+    const chatSenderInput = document.getElementById('chat-sender-input');
+    const chatMessageInput = document.getElementById('chat-message-input');
+    const chatSendButton = document.getElementById('chat-send-button');
+    const chatUnreadBadge = document.getElementById('chat-unread-badge');
+
+    let lastMessageTimestamp = 0;
+    let isChatOpen = false;
+    let unreadCount = 0;
+
+    // Load saved sender name
+    const savedSender = localStorage.getItem('chatSenderName');
+    if (savedSender) {
+        chatSenderInput.value = savedSender;
+    }
+
+    chatSenderInput.addEventListener('change', () => {
+        localStorage.setItem('chatSenderName', chatSenderInput.value.trim());
+    });
+
+    // Toggle Chat Panel
+    chatFab.addEventListener('click', () => {
+        isChatOpen = true;
+        chatPanel.classList.remove('hidden');
+        chatFab.style.display = 'none';
+        unreadCount = 0;
+        updateUnreadBadge();
+        scrollToBottom();
+        chatMessageInput.focus();
+    });
+
+    chatCloseButton.addEventListener('click', () => {
+        isChatOpen = false;
+        chatPanel.classList.add('hidden');
+        chatFab.style.display = 'flex';
+    });
+
+    function updateUnreadBadge() {
+        if (unreadCount > 0) {
+            chatUnreadBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+            chatUnreadBadge.style.display = 'flex';
+        } else {
+            chatUnreadBadge.style.display = 'none';
+        }
+    }
+
+    function scrollToBottom() {
+        chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+    }
+
+    function formatTime(timestamp) {
+        const date = new Date(timestamp);
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function appendMessage(msg) {
+        const isMe = msg.sender === chatSenderInput.value.trim();
+        const bubble = document.createElement('div');
+        bubble.className = `chat-bubble ${isMe ? 'me' : 'other'}`;
+
+        bubble.innerHTML = `
+            <div class="chat-bubble-sender">${msg.sender}</div>
+            <div class="chat-bubble-text">${msg.text}</div>
+            <div class="chat-bubble-time">${formatTime(msg.timestamp)}</div>
+        `;
+
+        chatMessagesContainer.appendChild(bubble);
+
+        if (isChatOpen) {
+            scrollToBottom();
+        } else {
+            unreadCount++;
+            updateUnreadBadge();
+        }
+    }
+
+    // Long Polling Loop
+    async function pollMessages() {
+        try {
+            const response = await fetch(`/api/chat?since=${lastMessageTimestamp}`);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.messages && data.messages.length > 0) {
+                    data.messages.forEach(msg => {
+                        appendMessage(msg);
+                        lastMessageTimestamp = Math.max(lastMessageTimestamp, msg.timestamp);
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Chat polling error:', error);
+            // Wait a bit before retrying on error to avoid hammering the server
+            await new Promise(resolve => setTimeout(resolve, 5000));
+        } finally {
+            // Immediately start next poll
+            pollMessages();
+        }
+    }
+
+    // Send Message
+    async function sendMessage() {
+        const text = chatMessageInput.value.trim();
+        const sender = chatSenderInput.value.trim() || 'Anonymous';
+
+        if (!text) return;
+
+        chatMessageInput.value = ''; // clear input
+
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text, sender })
+            });
+            if (!response.ok) {
+                console.error('Failed to send message');
+                // optionally restore text
+                chatMessageInput.value = text;
+            }
+        } catch (error) {
+            console.error('Network error sending message:', error);
+            chatMessageInput.value = text;
+        }
+    }
+
+    chatSendButton.addEventListener('click', sendMessage);
+    chatMessageInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+
+    // Start polling immediately
+    pollMessages();
+
     // Initial load of files when the page is ready
     fetchFiles();
 });

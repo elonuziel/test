@@ -632,3 +632,201 @@ footer {
     }
 }
 
+/* --- Chat Feature Styles --- */
+#chat-fab {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    color: var(--white);
+    box-shadow: 0 4px 12px var(--shadow-medium);
+    z-index: 999;
+    padding: 0;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+#chat-fab:hover {
+    transform: scale(1.05);
+    background-color: var(--primary-gradient-end);
+}
+
+#chat-fab svg {
+    width: 24px;
+    height: 24px;
+}
+
+#chat-unread-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: var(--error-color);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: bold;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+#chat-panel {
+    position: fixed;
+    bottom: 5rem;
+    right: 2rem;
+    width: 350px;
+    max-height: 500px;
+    height: 60vh;
+    background-color: var(--card-background);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px var(--shadow-medium);
+    display: flex;
+    flex-direction: column;
+    z-index: 998;
+    overflow: hidden;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    border: 1px solid var(--divider-color);
+}
+
+#chat-panel.hidden {
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none;
+}
+
+#chat-header {
+    background: linear-gradient(45deg, var(--primary-gradient-start), var(--primary-gradient-end));
+    color: var(--white);
+    padding: 0.8rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#chat-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+#chat-header .icon-button {
+    color: var(--white);
+    padding: 0.2rem;
+}
+
+#chat-header .icon-button:hover {
+    background-color: rgba(255,255,255,0.1);
+    border-color: transparent;
+}
+
+#chat-messages {
+    flex: 1;
+    padding: 1rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    background-color: var(--app-background);
+}
+
+.chat-bubble {
+    max-width: 80%;
+    padding: 0.6rem 0.8rem;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.chat-bubble.other {
+    align-self: flex-start;
+    background-color: var(--card-background);
+    border: 1px solid var(--divider-color);
+    border-bottom-left-radius: 2px;
+}
+
+.chat-bubble.me {
+    align-self: flex-end;
+    background-color: var(--button-background);
+    color: var(--text-primary);
+    border-bottom-right-radius: 2px;
+}
+
+.chat-bubble-sender {
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+    color: var(--primary-color);
+}
+.chat-bubble.me .chat-bubble-sender {
+    display: none; /* Don't show name on own messages to save space */
+}
+
+.chat-bubble-time {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    text-align: right;
+    margin-top: 0.2rem;
+}
+
+#chat-input-area {
+    padding: 1rem;
+    border-top: 1px solid var(--divider-color);
+    background-color: var(--card-background);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+#chat-sender-input, #chat-message-input {
+    width: 100%;
+    padding: 0.6rem;
+    border: 1px solid var(--divider-color);
+    border-radius: 8px;
+    background-color: var(--app-background);
+    color: var(--text-primary);
+    font-family: inherit;
+    box-sizing: border-box;
+}
+
+#chat-sender-input {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.6rem;
+}
+
+.chat-send-row {
+    display: flex;
+    gap: 0.5rem;
+}
+
+#chat-send-button {
+    background-color: var(--primary-color);
+    color: var(--white);
+    border-radius: 8px;
+    padding: 0.6rem 0.8rem;
+}
+
+#chat-send-button:hover {
+    background-color: var(--primary-gradient-end);
+}
+
+@media (max-width: 768px) {
+    #chat-panel {
+        bottom: 0;
+        right: 0;
+        width: 100%;
+        height: 100vh;
+        max-height: none;
+        border-radius: 0;
+        border: none;
+    }
+    #chat-fab {
+        bottom: 1rem;
+        right: 1rem;
+    }
+}
+

@@ -53,8 +53,18 @@ import io.ktor.utils.io.copyTo
 import io.ktor.utils.io.jvm.javaio.toOutputStream
 import io.ktor.utils.io.writeFully
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.delay
 import kotlinx.serialization.Serializable
+import java.util.concurrent.atomic.AtomicLong
+import android.content.Intent
+import com.matanh.transfer.util.Constants
+import com.matanh.transfer.server.FileServerService
 import org.json.JSONObject
 import timber.log.Timber
 import java.io.OutputStream
@@ -70,7 +80,14 @@ import java.util.zip.ZipOutputStream
 const val TAG_KTOR_MODULE = "TransferKtorModule"
 private val logger = Timber.tag(TAG_KTOR_MODULE)
 
-// --- Custom Plugins (CurlDetectorPlugin, IpAddressApprovalPlugin) ---
+// --- Chat State ---
+private val chatMessages = mutableListOf<ChatMessage>()
+private val chatUpdateFlow = MutableSharedFlow<Unit>(replay = 1)
+
+// --- Auto-Close State ---
+private val lastActivityTime = AtomicLong(System.currentTimeMillis())
+
+// --- Custom Plugins (CurlDetectorPlugin, IpAddressApprovalPlugin, ActivityTrackerPlugin) ---
 private val IsCurlRequestKey = AttributeKey<Boolean>("IsCurlRequestKey")
 
 val CurlDetectorPlugin = createApplicationPlugin(name = "CurlDetectorPlugin") {
@@ -78,6 +95,18 @@ val CurlDetectorPlugin = createApplicationPlugin(name = "CurlDetectorPlugin") {
         val userAgent = call.request.headers[HttpHeaders.UserAgent]
         if (userAgent != null && userAgent.contains("curl", ignoreCase = true)) {
             call.attributes.put(IsCurlRequestKey, true)
+        }
+    }
+}
+
+val ActivityTrackerPlugin = createApplicationPlugin(name = "ActivityTrackerPlugin") {
+    onCall { call ->
+        val uri = call.request.local.uri
+        val method = call.request.local.method
+        
+        // Do not count long-polling GET requests as interaction
+        if (!(uri.startsWith("/api/chat") && method == HttpMethod.Get)) {
+            lastActivityTime.set(System.currentTimeMillis())
         }
     }
 }
@@ -361,7 +390,25 @@ fun Application.ktorServer(
         }
     }
     install(IpAddressApprovalPlugin)
+    install(ActivityTrackerPlugin)
     install(ContentNegotiation) { json() }
+
+    // Auto-Close Background Coroutine
+    lastActivityTime.set(System.currentTimeMillis())
+    launch(Dispatchers.IO) {
+        val timeoutMillis = 5 * 60 * 1000L
+        while (isActive) {
+            delay(30_000) // Check every 30 seconds
+            if (System.currentTimeMillis() - lastActivityTime.get() > timeoutMillis) {
+                logger.i("No interaction for 5 minutes. Stopping server.")
+                val intent = Intent(applicationContext, FileServerService::class.java).apply {
+                    action = Constants.ACTION_STOP_SERVICE
+                }
+                applicationContext.startService(intent)
+                break
+            }
+        }
+    }
 
     // Routing
     routing {
@@ -542,6 +589,51 @@ fun Application.ktorServer(
                         )
                     }
                 }
+
+                // Chat Endpoints
+                get("/chat") {
+                    val since = call.request.queryParameters["since"]?.toLongOrNull() ?: 0L
+                    var newMessages = chatMessages.filter { it.timestamp > since }
+                    
+                    if (newMessages.isEmpty()) {
+                        // Long polling: wait up to 30s for a new message
+                        withTimeoutOrNull(30_000) {
+                            chatUpdateFlow.first()
+                        }
+                        newMessages = chatMessages.filter { it.timestamp > since }
+                    }
+                    
+                    call.respond(ChatMessagesResponse(newMessages))
+                }
+                
+                post("/chat") {
+                    try {
+                        val requestBody = call.receiveText()
+                        val jsonObject = JSONObject(requestBody)
+                        val text = jsonObject.optString("text", "").trim()
+                        val sender = jsonObject.optString("sender", "Anonymous").trim()
+                        
+                        if (text.isNotEmpty()) {
+                            val msg = ChatMessage(
+                                sender = sender.ifEmpty { "Anonymous" },
+                                text = text,
+                                timestamp = System.currentTimeMillis()
+                            )
+                            chatMessages.add(msg)
+                            // Keep maximum 100 messages in memory
+                            if (chatMessages.size > 100) {
+                                chatMessages.removeAt(0)
+                            }
+                            chatUpdateFlow.tryEmit(Unit)
+                            call.respond(HttpStatusCode.Created, msg)
+                        } else {
+                            call.respond(HttpStatusCode.BadRequest, ErrorResponse("Message text is empty"))
+                        }
+                    } catch (e: Exception) {
+                        logger.e(e, "Error processing chat message")
+                        call.respond(HttpStatusCode.InternalServerError, ErrorResponse("Failed to send message: ${e.localizedMessage}"))
+                    }
+                }
             }
 
             // HTTP Interface
@@ -626,3 +718,9 @@ data class ErrorResponse(val error: String)
 
 @Serializable
 data class SuccessResponse(val message: String)
+
+@Serializable
+data class ChatMessage(val sender: String, val text: String, val timestamp: Long)
+
+@Serializable
+data class ChatMessagesResponse(val messages: List<ChatMessage>)
