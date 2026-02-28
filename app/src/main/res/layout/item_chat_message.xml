@@ -1,18 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="8dp">
 
-    <TextView
-        android:id="@+id/tvChatText"
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:orientation="horizontal"
         android:background="@drawable/bg_chat_bubble"
-        android:padding="12dp"
-        android:textColor="?android:attr/textColorPrimary"
-        android:textSize="16sp" />
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="8dp"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/tvChatText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="?android:attr/textColorPrimary"
+            android:textSize="16sp" />
+
+        <ImageButton
+            android:id="@+id/btnCopyMessage"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:padding="6dp"
+            android:layout_marginStart="4dp"
+            android:background="?selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_content_copy"
+            android:contentDescription="@string/copy_to_clipboard"
+            app:tint="?android:attr/textColorSecondary" />
+    </LinearLayout>
 
     <TextView
         android:id="@+id/tvChatTime"

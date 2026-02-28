@@ -323,8 +323,8 @@ button:hover {
     transform: translateY(-1px);
 }
 
-.delete-button{
-background-color: var(--error-color);
+.delete-button {
+    background-color: var(--error-color);
 }
 
 .download-icon:hover {
@@ -337,17 +337,24 @@ background-color: var(--error-color);
     /* Delete icon becomes red on hover */
     border-color: var(--error-color);
 }
+
 .header-container {
-    display: flex; /* Enable Flexbox */
-    justify-content: space-between; /* Puts space between the h2 and the button div */
-    align-items: center; /* Vertically aligns items in the middle */
-    margin-bottom: 1rem; /* Maintains the spacing below the header */
-    padding: 0 15px; /* Add some padding to the sides */
+    display: flex;
+    /* Enable Flexbox */
+    justify-content: space-between;
+    /* Puts space between the h2 and the button div */
+    align-items: center;
+    /* Vertically aligns items in the middle */
+    margin-bottom: 1rem;
+    /* Maintains the spacing below the header */
+    padding: 0 15px;
+    /* Add some padding to the sides */
 }
 
 #files-actions {
     /* Remove inline styles here, flexbox handles alignment */
-    margin-bottom: 0; /* Reset margin if inherited from elsewhere */
+    margin-bottom: 0;
+    /* Reset margin if inherited from elsewhere */
 }
 
 /* Styling for the Download All as Zip button */
@@ -358,7 +365,8 @@ background-color: var(--error-color);
     font-weight: 500;
     transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
     box-shadow: 0 2px 4px var(--shadow-light);
-    white-space: nowrap; /* Prevent button text from wrapping */
+    white-space: nowrap;
+    /* Prevent button text from wrapping */
 }
 
 #download-all-zip-button:hover {
@@ -562,7 +570,8 @@ footer {
     }
 
     #files-table {
-        table-layout: auto; /* Reset table layout */
+        table-layout: auto;
+        /* Reset table layout */
     }
 
     /* Hide table headers visually, but keep them for screen readers */
@@ -580,10 +589,12 @@ footer {
     #files-table tr {
         display: block;
         border: 1px solid var(--divider-color);
-        border-radius: 8px; /* Makes each row a "card" */
+        border-radius: 8px;
+        /* Makes each row a "card" */
         margin-bottom: 1rem;
         box-shadow: 0 2px 4px var(--shadow-light);
-        background-color: var(--card-background); /* Ensure cards have a background */
+        background-color: var(--card-background);
+        /* Ensure cards have a background */
     }
 
     #files-table tbody tr {
@@ -592,17 +603,21 @@ footer {
 
     #files-table td {
         display: block;
-        text-align: right; /* Align cell content (the value) */
+        text-align: right;
+        /* Align cell content (the value) */
         font-size: 0.9rem;
-        padding: 12px 15px 12px 50%; /* Top, Right, Bottom, Left padding */
+        padding: 12px 15px 12px 50%;
+        /* Top, Right, Bottom, Left padding */
         position: relative;
-        white-space: nowrap; /* Allow text to wrap */
+        white-space: nowrap;
+        /* Allow text to wrap */
         text-overflow: ellipsis;
         border-bottom: 1px solid var(--divider-color);
     }
 
     #files-table td:last-child {
-        border-bottom: none; /* No border for the last cell in a card */
+        border-bottom: none;
+        /* No border for the last cell in a card */
     }
 
     /* Use the data-label attribute to create a pseudo-header */
@@ -615,12 +630,14 @@ footer {
         white-space: nowrap;
         text-align: left;
         font-weight: 600;
-        color: var(--primary-color); /* Make labels stand out */
+        color: var(--primary-color);
+        /* Make labels stand out */
     }
 
     /* Ensure the actions container aligns correctly within the new layout */
     #files-table td .action-icons-container {
-        justify-content: flex-end; /* Aligns buttons to the right */
+        justify-content: flex-end;
+        /* Aligns buttons to the right */
         padding: 0;
     }
 
@@ -628,7 +645,8 @@ footer {
     #files-table th:nth-child(n),
     #files-table td:nth-child(n) {
         width: auto;
-        max-width: 60vw; /* Prevents overflow on phones */
+        max-width: 60vw;
+        /* Prevents overflow on phones */
     }
 }
 
@@ -672,7 +690,7 @@ footer {
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 #chat-panel {
@@ -719,7 +737,7 @@ footer {
 }
 
 #chat-header .icon-button:hover {
-    background-color: rgba(255,255,255,0.1);
+    background-color: rgba(255, 255, 255, 0.1);
     border-color: transparent;
 }
 
@@ -762,8 +780,10 @@ footer {
     margin-bottom: 0.2rem;
     color: var(--primary-color);
 }
+
 .chat-bubble.me .chat-bubble-sender {
-    display: none; /* Don't show name on own messages to save space */
+    display: none;
+    /* Don't show name on own messages to save space */
 }
 
 .chat-bubble-time {
@@ -782,7 +802,8 @@ footer {
     gap: 0.5rem;
 }
 
-#chat-sender-input, #chat-message-input {
+#chat-sender-input,
+#chat-message-input {
     width: 100%;
     padding: 0.6rem;
     border: 1px solid var(--divider-color);
@@ -824,9 +845,43 @@ footer {
         border-radius: 0;
         border: none;
     }
+
     #chat-fab {
         bottom: 1rem;
         right: 1rem;
     }
 }
 
+/* Copy button in chat */
+.chat-bubble-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.chat-copy-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 2px;
+    margin-left: 8px;
+    transition: color 0.2s, transform 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chat-copy-btn:hover {
+    color: var(--primary-color);
+}
+
+.chat-copy-btn:active {
+    transform: scale(0.9);
+}
+
+.chat-copy-btn svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+}

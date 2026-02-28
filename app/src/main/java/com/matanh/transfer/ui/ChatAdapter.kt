@@ -28,11 +28,19 @@ class ChatAdapter : ListAdapter<ChatMessage, ChatAdapter.ChatViewHolder>(ChatDif
     class ChatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val tvText: TextView = itemView.findViewById(R.id.tvChatText)
         private val tvTime: TextView = itemView.findViewById(R.id.tvChatTime)
+        private val btnCopy: android.widget.ImageButton = itemView.findViewById(R.id.btnCopyMessage)
         private val dateFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
 
         fun bind(msg: ChatMessage) {
             tvText.text = msg.text
             tvTime.text = dateFormat.format(Date(msg.timestamp))
+            
+            btnCopy.setOnClickListener {
+                val clipboard = itemView.context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                val clip = android.content.ClipData.newPlainText("Chat Message", msg.text)
+                clipboard.setPrimaryClip(clip)
+                android.widget.Toast.makeText(itemView.context, "Message copied", android.widget.Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
