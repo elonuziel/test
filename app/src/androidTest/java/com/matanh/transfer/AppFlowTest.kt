@@ -160,7 +160,8 @@ class AppFlowTest {
     }
 
     private fun addToCreated(filename: String) {
-        synchronized(createdFiles) { createdFiles.add(filename) }
+        val normalizedName = runCatching { filename.decodeURL() }.getOrDefault(filename)
+        synchronized(createdFiles) { createdFiles.add(normalizedName) }
     }
 
     private fun uploadFileHttp(
@@ -320,7 +321,10 @@ class AppFlowTest {
 
 
         // --- Step 3: Upload a file via HTTP ---
-        uploadFileHttp(testFileName, testFileContent, "text/plain")
+        Assert.assertTrue(
+            "HTTP upload failed for $testFileName",
+            uploadFileHttp(testFileName, testFileContent, "text/plain")
+        )
 
 
         // --- Step 4: Verify the file appears in the RecyclerView ---
@@ -394,8 +398,8 @@ class AppFlowTest {
         val filename2 = "a b+c.py"
         val content1 = "+"
         val content2 = "space"
-        uploadFileHttp(filename1.encodeURL(), content1)
-        uploadFileHttp(filename2.encodeURL(), content2)
+        Assert.assertTrue("HTTP upload failed for $filename1", uploadFileHttp(filename1.encodeURL(), content1))
+        Assert.assertTrue("HTTP upload failed for $filename2", uploadFileHttp(filename2.encodeURL(), content2))
 
         Assert.assertTrue(checkFileContent(filename1.encodeURL(), content1));
         Assert.assertTrue(checkFileContent(filename2.encodeURL(), content2));

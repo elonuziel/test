@@ -1,8 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-
-    kotlin("plugin.serialization") version "1.8.0"
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -53,7 +52,6 @@ android {
 
 dependencies {
     implementation(libs.ktor.serialization.kotlinx.json.jvm) // For JSON
-    implementation(libs.ktor.serialization.kotlinx.json) // important for kt "Serializable"
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -68,7 +66,6 @@ dependencies {
 
     // Ktor Features
     implementation(libs.ktor.server.content.negotiation.jvm)
-    implementation(libs.ktor.server.content.negotiation)
     implementation(libs.ktor.server.status.pages.jvm)
     implementation(libs.ktor.server.auth.jvm) // For Basic Auth
     implementation(libs.ktor.server.cors.jvm)
@@ -81,19 +78,19 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
-    androidTestImplementation (libs.androidx.runner)
-    androidTestImplementation (libs.androidx.rules)
+    androidTestImplementation(libs.androidx.runner)
+    androidTestImplementation(libs.androidx.rules)
 
     // Espresso
-    androidTestImplementation (libs.androidx.espresso.contrib)
+    androidTestImplementation(libs.androidx.espresso.contrib)
 
     // UI Automator
-    androidTestImplementation (libs.androidx.uiautomator)
+    androidTestImplementation(libs.androidx.uiautomator)
 
     // OkHttp for making network requests in the test
-    androidTestImplementation (libs.okhttp)
+    androidTestImplementation(libs.okhttp)
 
-    androidTestImplementation (libs.awaitility.kotlin)
+    androidTestImplementation(libs.awaitility.kotlin)
 
     // QR Code generation
     implementation(libs.zxing.core)

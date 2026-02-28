@@ -102,6 +102,12 @@ class NetworkHelper(context: Context,
             // Can throw IllegalArgumentException if not registered, which is safe to ignore.
             Timber.e(e, "Error unregistering network callback.")
         }
+        try {
+            applicationContext.unregisterReceiver(hotspotReceiver)
+            Timber.d("Hotspot receiver unregistered.")
+        } catch (e: Exception) {
+            Timber.e(e, "Error unregistering hotspot receiver.")
+        }
     }
 
     /**

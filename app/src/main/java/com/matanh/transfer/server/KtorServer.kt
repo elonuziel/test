@@ -420,6 +420,7 @@ fun Application.ktorServer(
                         .filter { it.isFile }
                         .joinToString("\n") { it.name ?: "unknown_file" }
                     call.respondText(fileNames, ContentType.Text.Plain)
+                    return@get
                 }
                 val resource = call.resolveResource("index.html", "assets")
                 if (resource != null) {

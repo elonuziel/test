@@ -199,21 +199,17 @@ class MainActivity : AppCompatActivity() {
     private fun getIpURL(): String? {
         fun <T> noIp(): T? {
             Toast.makeText(this, getString(R.string.no_ip_available), Toast.LENGTH_SHORT)
-                .show();return null
+                .show()
+            return null
         }
 
-        val display = actvIps.text?.toString() ?: return noIp();
+        val display = actvIps.text?.toString() ?: return noIp()
         val preRaw = display.substringBefore(":").trim()
-        if (preRaw.lowercase() == "error") return noIp();
+        if (preRaw.lowercase() == "error") return noIp()
 
         val raw = display.substringAfter(": ").trim()
-        if (raw.isEmpty()) return noIp();
-        return "http://${raw}";
-
-        val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
-        clipboard.setPrimaryClip(ClipData.newPlainText("IP", raw))
-        Toast.makeText(this, R.string.ip_copied_to_clipboard, Toast.LENGTH_SHORT).show()
-
+        if (raw.isEmpty()) return noIp()
+        return "http://${raw}"
     }
 
     private fun setupClickListeners() {
