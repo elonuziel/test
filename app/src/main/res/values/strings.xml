@@ -135,5 +135,8 @@
     <string name="qr_code_generation_failed">Failed to generate QR code</string>
     <string name="no_ip_available">No IP address available</string>
 
+    <!-- Chat strings -->
+    <string name="chat_title">Chat</string>
+    <string name="chat_hint">Type a message...</string>
 
 </resources>
