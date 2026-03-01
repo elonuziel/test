@@ -40,9 +40,10 @@ import com.matanh.transfer.server.ServerState
 import com.matanh.transfer.ui.AboutActivity
 import com.matanh.transfer.ui.MainViewModel
 import com.matanh.transfer.ui.SettingsActivity
+// ...existing code...
 import com.matanh.transfer.util.Constants
-import com.matanh.transfer.util.ErrorReport
 import com.matanh.transfer.util.FileAdapter
+// ...existing code...
 import com.matanh.transfer.util.FileItem
 import com.matanh.transfer.util.FileUtils
 import com.matanh.transfer.util.IpEntry
@@ -638,17 +639,14 @@ class MainActivity : AppCompatActivity() {
                 true
             }
 
+// ...existing code...
             R.id.action_about -> {
                 startActivity(Intent(this, AboutActivity::class.java))
                 true
             }
 
-            R.id.action_report_error -> {
-                ErrorReport().openReport(this)
-                true
-            }
-
             else -> super.onOptionsItemSelected(item)
+// ...existing code...
         }
     }
 
