@@ -76,8 +76,8 @@ The root cause is that `ChatMessage` carries no sender identity, so the frontend
 **`ChatRepository` messages persist across server restarts**  
 When `FileServerService` stops and restarts the Ktor engine, `ChatRepository` retains all old messages because it is a Kotlin `object` (singleton). Callers reconnecting after a restart will receive stale history. Consider adding a `clear()` method called from `FileServerService` during `startServer()`.
 
-**`lastActivityTime` is module-level state**  
-`lastActivityTime` in `KtorServer.kt` is a package-level `private val`. If the Ktor application is stopped and re-created within the same process lifetime, the timer is not reset, which could cause the auto-close watchdog to fire almost immediately on a restarted server. Moving it inside the `ktorServer` function or resetting it there would fix this.
+**`lastActivityTime` is now per-instance**  
+`lastActivityTime` in `KtorServer.kt` is now a local `AtomicLong` inside the `ktorServer` function, initialized to `System.currentTimeMillis()` on each call. `ActivityTrackerPlugin` is converted to a factory function `createActivityTrackerPlugin(lastActivityTime)` that captures the per-instance value. This ensures each Ktor engine restart gets its own isolated timer and a stale watchdog from a previous engine cannot prematurely stop the new server.
 
 ---
 
@@ -88,6 +88,6 @@ When `FileServerService` stops and restarts the Ktor engine, `ChatRepository` re
 | 🔴 Critical | XSS via `innerHTML` message injection | **Fixed** |
 | 🟠 Medium | Thread-unsafe `ChatRepository._messages` list | **Fixed** |
 | 🟠 Medium | No message length limit on `POST /api/chat` | **Fixed** |
-| 🟡 Minor | "me"/"other" bubble CSS classes never applied | Open |
-| 🟡 Minor | Chat history not cleared on server restart | Open |
-| 🟡 Minor | `lastActivityTime` not reset on Ktor restart | Open |
+| 🟡 Minor | "me"/"other" bubble CSS classes never applied | By design (no sender identity needed) |
+| 🟡 Minor | Chat history not cleared on server restart | By design (persistence intended) |
+| 🟡 Minor | `lastActivityTime` not reset on Ktor restart | **Fixed** |
