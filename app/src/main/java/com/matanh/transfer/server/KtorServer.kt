@@ -78,6 +78,7 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 const val TAG_KTOR_MODULE = "TransferKtorModule"
 private val logger = Timber.tag(TAG_KTOR_MODULE)
+private const val MAX_CHAT_MESSAGE_LENGTH = 1000
 
 // --- Auto-Close State ---
 private val lastActivityTime = AtomicLong(System.currentTimeMillis())
@@ -609,6 +610,10 @@ fun Application.ktorServer(
                         val text = jsonObject.optString("text", "").trim()
                         
                         if (text.isNotEmpty()) {
+                            if (text.length > MAX_CHAT_MESSAGE_LENGTH) {
+                                call.respond(HttpStatusCode.BadRequest, ErrorResponse("Message too long (max $MAX_CHAT_MESSAGE_LENGTH characters)"))
+                                return@post
+                            }
                             ChatRepository.addMessage(text)
                             call.respond(HttpStatusCode.Created, SuccessResponse("Message Sent"))
                         } else {
