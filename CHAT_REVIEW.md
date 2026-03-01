@@ -70,8 +70,10 @@ fun addMessage(text: String) {
 ### 🟡 Minor – UX / Design
 
 **"me" / "other" bubble styling never applied**  
-`style.css` defines `.chat-bubble.me` (right-aligned) and `.chat-bubble.other` (left-aligned) styles, but `appendMessage()` always sets the class to `"chat-bubble message"`. All messages therefore render as left-aligned unstyled bubbles.  
-The root cause is that `ChatMessage` carries no sender identity, so the frontend cannot distinguish whose message is whose. The Walkthrough mentions storing a sender name in `localStorage`, but this was not implemented. A sender name field would need to be added to `ChatMessage` and the `POST /api/chat` body.
+`style.css` defined `.chat-bubble.me` (right-aligned) and `.chat-bubble.other` (left-aligned) styles, but `appendMessage()` always set the class to `"chat-bubble message"`. All messages therefore rendered as left-aligned unstyled bubbles.  
+The root cause is that `ChatMessage` carries no sender identity, so the frontend cannot distinguish whose message is whose.
+
+**Fix applied** – Since the design decision is to not implement sender identity, the unused CSS classes have been removed from `style.css`. Messages now use a single unified `.chat-bubble` style.
 
 **`ChatRepository` messages persist across server restarts**  
 When `FileServerService` stops and restarts the Ktor engine, `ChatRepository` retains all old messages because it is a Kotlin `object` (singleton). Callers reconnecting after a restart will receive stale history. Consider adding a `clear()` method called from `FileServerService` during `startServer()`.
@@ -88,6 +90,6 @@ When `FileServerService` stops and restarts the Ktor engine, `ChatRepository` re
 | 🔴 Critical | XSS via `innerHTML` message injection | **Fixed** |
 | 🟠 Medium | Thread-unsafe `ChatRepository._messages` list | **Fixed** |
 | 🟠 Medium | No message length limit on `POST /api/chat` | **Fixed** |
-| 🟡 Minor | "me"/"other" bubble CSS classes never applied | By design (no sender identity needed) |
+| 🟡 Minor | "me"/"other" bubble CSS classes never applied | **Fixed** (removed unused CSS) |
 | 🟡 Minor | Chat history not cleared on server restart | By design (persistence intended) |
 | 🟡 Minor | `lastActivityTime` not reset on Ktor restart | **Fixed** |

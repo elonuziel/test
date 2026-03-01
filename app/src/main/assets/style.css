@@ -758,32 +758,8 @@ footer {
     font-size: 0.95rem;
     line-height: 1.4;
     word-wrap: break-word;
-}
-
-.chat-bubble.other {
-    align-self: flex-start;
     background-color: var(--card-background);
     border: 1px solid var(--divider-color);
-    border-bottom-left-radius: 2px;
-}
-
-.chat-bubble.me {
-    align-self: flex-end;
-    background-color: var(--button-background);
-    color: var(--text-primary);
-    border-bottom-right-radius: 2px;
-}
-
-.chat-bubble-sender {
-    font-size: 0.75rem;
-    font-weight: 600;
-    margin-bottom: 0.2rem;
-    color: var(--primary-color);
-}
-
-.chat-bubble.me .chat-bubble-sender {
-    display: none;
-    /* Don't show name on own messages to save space */
 }
 
 .chat-bubble-time {
