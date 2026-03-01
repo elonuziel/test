@@ -78,9 +78,7 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 const val TAG_KTOR_MODULE = "TransferKtorModule"
 private val logger = Timber.tag(TAG_KTOR_MODULE)
-
-// --- Auto-Close State ---
-private val lastActivityTime = AtomicLong(System.currentTimeMillis())
+private const val MAX_CHAT_MESSAGE_LENGTH = 1000
 
 // --- Custom Plugins (CurlDetectorPlugin, IpAddressApprovalPlugin, ActivityTrackerPlugin) ---
 private val IsCurlRequestKey = AttributeKey<Boolean>("IsCurlRequestKey")
@@ -94,17 +92,18 @@ val CurlDetectorPlugin = createApplicationPlugin(name = "CurlDetectorPlugin") {
     }
 }
 
-val ActivityTrackerPlugin = createApplicationPlugin(name = "ActivityTrackerPlugin") {
-    onCall { call ->
-        val uri = call.request.local.uri
-        val method = call.request.local.method
-        
-        // Do not count long-polling GET requests as interaction
-        if (!(uri.startsWith("/api/chat") && method == HttpMethod.Get)) {
-            lastActivityTime.set(System.currentTimeMillis())
+fun createActivityTrackerPlugin(lastActivityTime: AtomicLong) =
+    createApplicationPlugin(name = "ActivityTrackerPlugin") {
+        onCall { call ->
+            val uri = call.request.local.uri
+            val method = call.request.local.method
+
+            // Do not count long-polling GET requests as interaction
+            if (!(uri.startsWith("/api/chat") && method == HttpMethod.Get)) {
+                lastActivityTime.set(System.currentTimeMillis())
+            }
         }
     }
-}
 
 val IpAddressApprovalPlugin = createApplicationPlugin(name = "IpAddressApprovalPlugin") {
     val serviceProvider = application.attributes[KEY_SERVICE_PROVIDER]
@@ -341,6 +340,9 @@ fun Application.ktorServer(
         return
     }
 
+    // Per-instance activity timer — isolated to this engine lifetime
+    val lastActivityTime = AtomicLong(System.currentTimeMillis())
+
     // Install Plugins
     install(CurlDetectorPlugin)
     install(CallLogging)
@@ -385,11 +387,10 @@ fun Application.ktorServer(
         }
     }
     install(IpAddressApprovalPlugin)
-    install(ActivityTrackerPlugin)
+    install(createActivityTrackerPlugin(lastActivityTime))
     install(ContentNegotiation) { json() }
 
     // Auto-Close Background Coroutine
-    lastActivityTime.set(System.currentTimeMillis())
     launch(Dispatchers.IO) {
         val timeoutMillis = 5 * 60 * 1000L
         while (isActive) {
@@ -609,6 +610,10 @@ fun Application.ktorServer(
                         val text = jsonObject.optString("text", "").trim()
                         
                         if (text.isNotEmpty()) {
+                            if (text.length > MAX_CHAT_MESSAGE_LENGTH) {
+                                call.respond(HttpStatusCode.BadRequest, ErrorResponse("Message too long (max $MAX_CHAT_MESSAGE_LENGTH characters)"))
+                                return@post
+                            }
                             ChatRepository.addMessage(text)
                             call.respond(HttpStatusCode.Created, SuccessResponse("Message Sent"))
                         } else {
